@@ -40,12 +40,21 @@ Packages <- c("plyr","tidyverse", "data.table", "XML", "reshape2",
               "chron", "proj4", "readxl", "readODS", "Cairo", "bookdown", "pander")
 invisible(lapply(X = Packages, FUN = library, character.only = TRUE))
 
-## Specify the location of files in your working directory
+## Specify the location of files in your working directory/remote server/...
 test_schema <- file.path(RepPath, "2_Data/Definitions/bioticv3.xsd")
 biotic_files <- "<survey_data_path>/BIOLOGY/CATCH_MEASUREMENTS/BIOTIC"
 trackPath <- "<survey_data_path>/CRUISE_LOG/TRACK"
 acousticsPath <- "<survey_data_path>/ACOUSTIC/LSSS/REPORTS"
 CTDpath <- "<survey_data_path>/PHYSICS/CTD/CTD_DATA"
+
+
+## Define map extent and depth contours
+Ylim <- c(56, 63)        #latitude
+Xlim <- c(-6, 8)         #longitude
+xyratio <- 1.5
+
+d.contours <- c(-100, -300, -500)   #Depth contours for plot with bathymetry
+
 
 ## Load functions:
 source(file.path(RepPath, "1_Scripts/0_Functions_biotic_parser.R"))
@@ -110,14 +119,7 @@ Cruise tracks from the position log with points indicating start positions for d
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=6, out.width= "75%", fig.align="center"}
 ## Get bathymetry data from file
-bath1 <- read_csv(file = "./Data/GeoData/ETOPO1_nm4.csv")
-
-## Define map extent and depth contours
-Ylim <- c(56, 63)        #latitude
-Xlim <- c(-6, 8)         #longitude
-xyratio <- 1.5
-
-d.contours <- c(-100, -300, -500)   #Depth contours for plot with bathymetry
+bath1 <- read_csv(file = file.path(RepPath, "2_Data/GeoData/ETOPO1_nm4.csv"))
 
 ## reduce the resolution of depth contours (to increase speed when writing to file)
 bath <- subset(bath1, bath1$y>(Ylim[1]-2) & (bath1$y<Ylim[2]+2) &
