@@ -241,10 +241,23 @@ ggplot(stdat %>% dplyr::filter(!gear.text == "Pelagic trawl"),
 
 ```{r,echo=FALSE, message=FALSE}
 ## Sjekk hvilke arter som er vanligst
-tst <- stasamp %>% dplyr::group_by(scientificname) %>%
-    dplyr::summarise(meanW=mean(cr.kg.nm), meanN = mean(cr.n.nm),
-                     minW = min(cr.kg.nm), maxW = max(cr.kg.nm),
-                     minN = min(cr.n.nm), maxN = max(cr.n.nm))
+tst <- stasamp %>%
+    ## Absence counted as zero (needs factors):
+    mutate(station = factor(as.character(station)),
+           scientificname = factor(as.character(scientificname))) %>%
+    dplyr::group_by(gear.text,
+                    station,
+                    scientificname, .drop = FALSE) %>%
+    dplyr::summarise(cr.kg.nm = meanOrZero(cr.kg.nm),
+                     cr.n.nm = meanOrZero(cr.n.nm)) %>%
+    ## Statistics over stations:
+    dplyr::group_by(gear.text, scientificname) %>%
+    dplyr::summarise(meanW=mean(cr.kg.nm, na.rm = TRUE),
+                     minW = min(cr.kg.nm, na.rm = TRUE),
+                     maxW = max(cr.kg.nm, na.rm = TRUE),
+                     meanN = mean(cr.n.nm),
+                     minN = min(cr.n.nm),
+                     maxN = max(cr.n.nm))
 ```
 
 A total of `r length(unique(tst$scientificname))` species were registered in Sea2Data during the survey.
@@ -269,11 +282,6 @@ ggplot(nspec, aes(nstation, nspecies))+geom_line(size = 1)+theme_bw()+
 
 ### Bottom trawl
 ```{r,echo=FALSE, message=FALSE, fig.width=9, fig.height=4.3, out.width= "85%", fig.align="center", warning=FALSE}
-tst <- stasamp %>% dplyr::group_by(gear.text, scientificname) %>%
-    dplyr::summarise(meanW=mean(cr.kg.nm), meanN = mean(cr.n.nm),
-                     minW = min(cr.kg.nm), maxW = max(cr.kg.nm),
-                     minN = min(cr.n.nm), maxN = max(cr.n.nm))
-
 gear <- "Bottom trawl"
 
 ## Weight
